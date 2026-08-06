@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ท้าหรือทำ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0d;
+    --bg-2:#111116;
+    --panel:#151519;
+    --line:rgba(255,255,255,0.08);
+    --gold:#c9a13f;
+    --gold-bright:#e8c369;
+    --ink:#eceae4;
+    --ink-dim:#7d7b82;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Sarabun',sans-serif;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(201,161,63,0.07), transparent 55%),
+      radial-gradient(ellipse at 50% 110%, rgba(0,0,0,0.6), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    min-height: 100dvh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow-x:hidden;
+    position:relative;
+  }
+  .grain{
+    position:fixed; inset:0;
+    pointer-events:none;
+    opacity:0.03;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .stage{
+    width:100%;
+    max-width:520px;
+    padding:32px 20px;
+    position:relative;
+    z-index:2;
+  }
+  h1.brand{
+    font-family:'Kanit',sans-serif;
+    font-weight:800;
+    text-align:center;
+    font-size:clamp(36px,9vw,50px);
+    margin:0 0 4px;
+    letter-spacing:1px;
+    color:var(--ink);
+    text-shadow:0 0 40px rgba(201,161,63,0.15);
+  }
+  .brand span{ color:var(--gold-bright); }
+  .tagline{
+    text-align:center;
+    color:var(--ink-dim);
+    font-size:14px;
+    margin-bottom:44px;
+    letter-spacing:0.5px;
+  }
+
+  /* ---------- HOME SCREEN : single deck ---------- */
+  #home{ animation:fadeIn .5s ease; }
+  .deck-row{
+    display:flex;
+    align-items:center;
+    cursor:pointer;
+    justify-content:center;
+  }
+  .deck-stack{
+    position:relative;
+    width:120px;
+    height:160px;
+    flex-shrink:0;
+    margin: 0 auto 24px auto; /* แก้ไข: ทำให้กองไพ่อยู่กึ่งกลางหน้าจอและมีระยะห่างกับตัวหนังสือ */
+    transition:transform .2s ease;
+  }
+  .deck-row:hover .deck-stack{ transform:translateY(-4px); }
+ .deck-stack .pc{
+    position:absolute;
+    width:100%; height:100%;
+    border-radius:12px;
+    background-image: url('./plubic/infont.png'); /* ดึงรูปด้านหลังไพ่ */
+    background-size: cover;
+    background-position: center;
+    border:1px solid var(--line);
+    box-shadow:0 12px 24px rgba(0,0,0,0.5);
+  }
+  .deck-stack .pc:nth-child(1){ transform:rotate(-7deg) translate(-6px,3px); z-index:1; }
+  .deck-stack .pc:nth-child(2){ transform:rotate(4deg) translate(4px,1px); z-index:2; }
+  .deck-stack .pc:nth-child(3){
+    z-index:3;
+    display:flex; align-items:center; justify-content:center;
+    border-color:rgba(201,161,63,0.45);
+    box-shadow:0 14px 30px rgba(201,161,63,0.14), 0 0 0 1px rgba(201,161,63,0.2) inset;
+  }
+  .pc-mark{
+    font-family:'Kanit',sans-serif;
+    font-weight:800;
+    font-size:38px;
+    opacity:0.9;
+    color:var(--gold-bright);
+  }
+
+  .deck-info{ text-align:center; }
+  .deck-info .kicker{
+    font-family:'Kanit',sans-serif;
+    font-weight:600;
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    margin-bottom:4px;
+    color:var(--gold-bright);
+  }
+  .deck-info h2{
+    font-family:'Kanit',sans-serif;
+    margin:0 0 6px;
+    font-size:23px;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .deck-info .desc{
+    font-size:13px;
+    color:var(--ink-dim);
+  }
+  .deck-count{
+    font-family:'Kanit',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    color:var(--ink-dim);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:4px 12px;
+    display:inline-block;
+    margin-top:8px;
+  }
+
+  /* ---------- GAME SCREEN ---------- */
+  #game{ display:none; text-align:center; animation:fadeIn .5s ease; }
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:28px;
+  }
+  .backBtn{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    font-family:'Sarabun',sans-serif;
+    font-size:14px;
+    padding:8px 14px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .backBtn:hover{ border-color:var(--gold-bright); color:var(--gold-bright); }
+  .progress{
+    font-family:'Kanit',sans-serif;
+    font-size:14px;
+    color:var(--ink-dim);
+    letter-spacing:0.5px;
+  }
+  .progress b{ color:var(--gold-bright); }
+
+  .card-wrap{
+    perspective:1400px;
+    width: 280px; 
+    height: 380px; 
+    max-width: 100%;
+    margin:0 auto;
+    position:relative;
+  }
+  .card3d{
+    width:100%; height:100%;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform .7s cubic-bezier(.2,.9,.25,1), opacity .25s ease;
+    cursor:pointer;
+  }
+  .card3d.flipped{ transform:rotateY(180deg); }
+  .face{
+    position:absolute; inset:0;
+    border-radius:20px;
+    backface-visibility:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+  }
+  .face-front{
+    background-image: url('./plubic/infont.png'); /* ดึงรูปด้านหน้าไพ่ */
+    background-size: cover;
+    background-position: center;
+    border:1px solid var(--line);
+    box-shadow:0 24px 60px rgba(0,0,0,0.6);
+    flex-direction:column;
+    gap:10px;
+  }
+  .face-front .mark{
+    font-family:'Kanit',sans-serif;
+    font-size:52px;
+    font-weight:800;
+    color:var(--gold);
+    opacity:0.8;
+  }
+  .face-front .hint{
+    font-family:'Sarabun',sans-serif;
+    color:var(--ink-dim);
+    font-size:13px;
+  }
+  .face-back{
+    transform:rotateY(180deg);
+    flex-direction:column;
+    border:1px solid var(--line);
+    background:linear-gradient(160deg,#17171b,#0c0c0f);
+    box-shadow:0 24px 60px rgba(201,161,63,0.12), 0 0 0 1px rgba(201,161,63,0.2) inset;
+    padding-bottom: 50px; 
+  }
+  .qtext{
+    font-family:'Kanit',sans-serif;
+    font-weight:600;
+    font-size:clamp(18px, 5vw, 22px);
+    line-height:1.5;
+    color:var(--ink);
+    word-break: break-word;
+    width: 100%;
+  }
+  .qnum{
+    position:absolute;
+    bottom:16px; right:20px;
+    font-family:'Kanit',sans-serif;
+    font-size:12px;
+    color:var(--ink-dim);
+    opacity:0.6;
+  }
+
+  .controls{
+    margin-top:34px;
+    display:flex;
+    gap:12px;
+    justify-content:center;
+  }
+  .btn{
+    font-family:'Kanit',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    padding:13px 26px;
+    border-radius:12px;
+    border:none;
+    cursor:pointer;
+    transition:transform .15s ease, filter .15s ease;
+  }
+  .btn:active{ transform:scale(0.96); }
+  .btn.primary{
+    background:linear-gradient(90deg, var(--gold), var(--gold-bright));
+    color:#12100a;
+  }
+  .btn.primary:hover{ filter:brightness(1.1); }
+  .btn.ghost{
+    background:rgba(255,255,255,0.03);
+    color:var(--ink);
+    border:1px solid var(--line);
+  }
+  .btn.ghost:hover{ border-color:var(--ink-dim); }
+  .btn:disabled{ opacity:0.5; cursor:default; }
+  .tap-hint{
+    margin-top:18px;
+    font-size:13px;
+    color:var(--ink-dim);
+    opacity:0.75;
+  }
+
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  .spark{
+    position:fixed;
+    width:5px; height:5px;
+    border-radius:50%;
+    background:var(--gold-bright);
+    pointer-events:none;
+    animation:spark-out .8s ease-out forwards;
+    z-index: 10;
+  }
+  @keyframes spark-out{
+    from{ transform:translate(0,0) scale(1); opacity:1; }
+    to{ transform:translate(var(--dx), var(--dy)) scale(0); opacity:0; }
+  }
+
+  @media (max-width:380px){
+    .deck-stack{ width:96px; height:130px; }
+    .deck-info h2{ font-size:19px; }
+    .card-wrap { width: 240px; height: 330px; } 
+  }
+
+  /* ---------- DEAL TRANSITION (start game) ---------- */
+  .deal-overlay{
+    position:fixed;
+    inset:0;
+    z-index:999;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .deal-overlay.dim::before{
+    content:"";
+    position:absolute; inset:0;
+    background:rgba(0,0,0,0);
+    transition:background .5s ease;
+  }
+  .deal-overlay.dim.active::before{
+    background:rgba(0,0,0,0.55);
+  }
+  .deal-card{
+    position:absolute;
+    top:0; left:0;
+    width:64px;
+    height:88px;
+    margin:-44px 0 0 -32px;
+    border-radius:9px;
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0 8px, transparent 8px 16px),
+      linear-gradient(160deg,#1e1e24,#111114);
+    border:1px solid rgba(255,255,255,0.12);
+    box-shadow:0 10px 26px rgba(0,0,0,0.55), 0 0 0 1px rgba(201,161,63,0.15) inset;
+    opacity:0;
+    transform:translate(0,0) rotate(0deg) scale(0.4);
+    transition:
+      transform .55s cubic-bezier(.22,.85,.3,1.15),
+      opacity .3s ease;
+  }
+  .deal-card::after{
+    content:"";
+    position:absolute;
+    inset:8px;
+    border-radius:5px;
+    border:1px solid rgba(201,161,63,0.18);
+  }
+
+  /* ---------- SHUFFLE SCATTER OVERLAY (in-card) ---------- */
+  .shuffle-overlay{
+    position:absolute;
+    inset:0;
+    z-index:20;
+    pointer-events:none;
+    overflow:visible;
+  }
+  .shuf-card{
+    position:absolute;
+    top:50%; left:50%;
+    width:70%;
+    height:70%;
+    margin:-35% 0 0 -35%;
+    border-radius:16px;
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0 8px, transparent 8px 16px),
+      linear-gradient(160deg,#1e1e24,#111114);
+    border:1px solid rgba(255,255,255,0.12);
+    box-shadow:0 14px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(201,161,63,0.18) inset;
+    opacity:0;
+    transform:translate(0,0) rotate(0deg) scale(0.9);
+    transition:transform .45s cubic-bezier(.22,.85,.3,1.1), opacity .3s ease;
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="deal-overlay dim" id="dealOverlay"></div>
+
+<div class="stage">
+
+  <div id="home">
+    <h1 class="brand">ท้า<span>หรือ</span>ทำ</h1>
+    <div class="tagline">เปิดไพ่ใบแรก แล้วเริ่มเกมกันเลย</div>
+
+    <div class="deck-row" onclick="startGame(this)">
+      <div class="deck-info">
+        <div class="deck-stack">
+          <div class="pc"></div>
+          <div class="pc"></div>
+          <div class="pc"><span class="pc-mark">★</span></div>
+        </div>
+        <div class="kicker">เริ่มเกม</div>
+        <h2>สับไพ่ แล้วลุย</h2>
+        <div class="desc">คำถามและมิชชั่นสุ่มไม่ซ้ำจนกว่าจะครบกอง</div>
+        <div class="deck-count" id="countAll">-- ใบ</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="game">
+    <div class="topbar">
+      <button class="backBtn" onclick="goHome()">← กลับหน้าแรก</button>
+      <div class="progress">ใบที่ <b id="progNum">1</b> / <span id="progTotal">--</span></div>
+    </div>
+
+    <div class="card-wrap">
+      <div class="card3d" id="card3d" onclick="handleCardClick()">
+        <div class="face face-front">
+          <div class="mark">★</div>
+          <div class="hint">แตะเพื่อเปิดไพ่</div>
+        </div>
+        <div class="face face-back" id="faceBack">
+          <div class="qtext" id="qtext">คำถาม</div>
+          <div class="qnum" id="qnumLabel"></div>
+        </div>
+      </div>
+      <div class="shuffle-overlay" id="shuffleOverlay"></div>
+    </div>
+
+    <div class="tap-hint" id="tapHint">แตะที่ไพ่เพื่อเปิดคำถาม</div>
+
+    <div class="controls">
+      <button class="btn ghost" id="shuffleBtn" onclick="shuffleDeck()">สับไพ่ใหม่</button>
+      <button class="btn primary" onclick="nextCard()">ใบถัดไป →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+"เคยแอบชอบคนในห้องไหม",
+"ถ้าแฟนเก่าทักมาจะตอบไหม",
+"ส่ง Emoji หาแฟนเก่าหรือคนคุยเก่า",
+"โทรหาคนคุยหรือแฟนเก่า",
+"โทรหา 191",
+"ถ่ายรูปในเวลาขณะนั้นส่งในแชตให้พ่อแม่ดู",
+'ทักหาคนเก่าว่า "เงี่ยน"',
+"หอมแก้มคนที่อยู่ทางข้างขวา",
+"หอมแก้มคนที่อยู่ทางข้างซ้าย",
+"เคยจินตนาการภาพคนที่ชอบ แล้วเอาไปช่วยตัวเองไหม",
+"ชอบเอาท่าไหนมากที่สุด",
+"จูบปากกับใครก็ได้ในวง",
+"หอมแก้มใครก็ได้ในวง",
+"ทำท่าเอากับใครก็ได้ในวง",
+"สุ่มตอบกลับสตอรี่ใครก็ได้ในวง",
+"จับของลับของคนทางขวา",
+"จับของลับกับคนทางซ้าย",
+"บอกชื่อเหล้ามา 5 ยี่ห้อ",
+"เล่าความรัก หรือ Story กับคนเก่า มา 1 เรื่องห้ามข้าม",
+"กินน้ำประหลาดที่เพื่อนทางด้านซ้ายชงให้",
+"มีแฟนครั้งแรกตอนอายุเท่าไหร่",
+"ช่วยตัวเองครั้งแรกตอนอายุเท่าไหร่",
+"เล่าประสบการณ์ช่วยตัวเองครั้งแรก",
+"ห้ามพูด 1 ชั่วโมง ถ้ารับคนในวงเริ่มจับเวลา",
+"จับมือคนทางขวา 20 นาที ถ้ารับคนในวงเริ่มจับเวลา",
+"จับมือคนทางซ้าย 20 นาที ถ้ารับคนในวงเริ่มจับเวลา",
+"กอดคนทางซ้าย 10 นาที ถ้ารับคนในวงเริ่มจับเวลา",
+"กอดคนทางขวา 10 นาที ถ้ารับคนในวงเริ่มจับเวลา",
+"นอนทับคนทางขวา 5 นาที ถ้ารับคนในวงเริ่มจับเวลา",
+"นอนทับคนทางซ้าย 5 นาที ถ้ารับคนในวงเริ่มจับเวลา",
+"นั่งตักคนทางขวา 10 นาที ถ้ารับคนในวงเริ่มจับเวลา",
+"นั่งตักคนทางซ้าย 10 นาที ถ้ารับคนในวงเริ่มจับเวลา",
+"เลือกนั่งตักใครก็ได้ 10 นาที ถ้ารับคนในวงเริ่มจับเวลา",
+"เลือกกอดใครก็ได้ 10 นาที ถ้ารับคนในวงเริ่มจับเวลา",
+"ทักไปบอกครูประจำชั้นตัวเองว่า สวัสดีครับ",
+"ถ่ายรูปตอนจูบกับใครก็ได้ในวงแล้วส่งไปให้เพื่อนที่คิดว่าสนิทที่สุด",
+"ถ่ายรูปตอนจูบกับคนทางขวาแล้วส่งไปให้เพื่อนที่คิดว่าสนิทที่สุด",
+"เอามือวางไว้บนหัว 5 นาที ข้างไหนก็ได้",
+"เอามือซ้ายวางไว้บนหัว 5 นาที ข้างไหนก็ได้",
+"เอามือขวาวางไว้บนหัว 5 นาที ข้างไหนก็ได้",
+"เล่าเรื่องเวลาอาบน้ำให้คนในวงฟังว่าทำอะไรบ้าง",
+"เปิดมือถือเอาตารางสอนให้คนในวงทางขวา แล้วให้คนทางขวาเลือกมา 1 วันแล้วคนโดนต้องท่องคาบเรียนที่ต้องเรียนมาห้ามผิด",
+"โชว์รูปคนเก่าให้เพื่อนดู",
+"ในชีวิตนี้ที่เคยคบ หรือคุยกับใครมา รักใครมากที่สุด ที่ไม่ใช่พ่อแม่ปู่ย่าตายาย",
+"ถามคนทางซ้ายว่า ในวงเหล้ามีกับแกล้มเป็นอะไร ตอบมา 3 อย่าง",
+"ลุกขึ้นแล้วเต้นท่าเป็ด",
+"ลุกขึ้นแล้วเต้นไก่ย่างถูกเผา",
+"หมุนตัว 5 ครั้งแล้วกลับมานั่ง",
+"ชอบสัตว์อะไรมากที่สุด",
+"กลัวสัตว์อะไรมากที่สุด",
+"เริ่มจากตัวคนโดนแล้วพูดประโยคหมวดสัตว์ แล้วคนต่อไปก็ต้องพูดคำจากคำสุดท้าย ห้ามผิดวนไปทั้งวง",
+"นับตัวเลขยังไงก็ได้ ห้ามลงท้ายด้วยเลขคู่ วนทั้งวง",
+"นับตัวเลขยังไงก็ได้ ห้ามลงท้ายด้วยเลขคี่ วนทั้งวง",
+"จงตอบค่าทศนิยมของค่าพาย (π) ทศนิยม 3 ตัวแรก",
+"จงบอกสูตรการหาค่าของสี่เหลี่ยมผืนผ้า",
+"จงบอกสูตรการหาค่าของสี่เหลี่ยมจัตุรัส",
+"บอกไซซ์ของลับตัวเอง",
+"บอกคนในวงว่าทำไมถึงชอบคนเก่าเพราะอะไร",
+"ถ้าให้เลือกนอนกับคนในวงจะเลือกนอนกับใคร",
+"เคยแอบชอบคนในห้องไหม",
+"ห้ามพูดคำหยาบ 1 ชั่วโมง",
+"ถามคนทางซ้ายว่าชอบอะไรในตัวเรามากที่สุด",
+"ถามคนทางขวาว่าชอบอะไรในตัวเรามากที่สุด",
+"ถามใครก็ได้ในวงว่าชอบอะไรในตัวเรามากที่สุด",
+"ถ้าได้อยู่กับแฟนหรือคนเก่าชอบจับส่วนไหนมากที่สุด",
+"เล่าสิ่งที่ชอบทำเมื่ออยู่กับแฟนหรือคนเก่า",
+"เล่าว่าถ้าในอนาคตโตไปอยากทำอะไร",
+"บอกอาชีพในฝันของตนเองให้เพื่อนๆในวง",
+"ให้เพื่อนๆในวงตั้งฉายาให้ตัวเอง",
+"ชอบให้คนอื่นจับอวัยวะในร่างกายของตัวเองส่วนไหนมากที่สุด ห้ามตอบไม่ชอบ",
+"ชอบให้แฟนหรือคนคุยจับส่วนไหนในร่างกายมากที่สุด",
+"บอกอาหารที่ชอบมา 10 อย่าง รวมน้ำด้วย",
+"ถามสิ่งที่อยากถามกับใครก็ได้",
+"เปิดหน้าท้องให้คนในวงดู",
+"ลูบหัวคนทางขวา 5 ที",
+"ลูบหัวคนทางซ้าย 5 ที",
+"ลูบหัวใครก็ได้ยกเว้นตัวเอง 5 ที",
+"เล่นบทบาทพ่อแม่ลูกกับคนทางซ้าย 5 นาที",
+"สั่งให้ใครทำอะไรก็ได้",
+"สั่งให้ใครทำอะไรก็ได้",
+"สั่งให้ใครทำอะไรก็ได้",
+"ถามใครอะไรก็ได้",
+"ถามใครอะไรก็ได้",
+"ถามใครอะไรก็ได้"
+];
+
+let deck = [];
+let deckIndex = 0;
+let isShuffling = false;
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("countAll").textContent = QUESTIONS.length + " ใบ";
+});
+
+function buildDeck(){
+  let pool = QUESTIONS.map((q,i)=>({q, n:i+1}));
+  for(let i = pool.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool;
+}
+
+function startGame(deckEl){
+  deck = buildDeck();
+  deckIndex = 0;
+  document.getElementById("progTotal").textContent = deck.length;
+
+  const origin = deckEl
+    ? deckEl.querySelector(".deck-stack").getBoundingClientRect()
+    : { left: window.innerWidth/2 - 60, top: window.innerHeight/2 - 80, width:120, height:160 };
+
+  playDealTransition(origin, () => {
+    document.getElementById("home").style.display = "none";
+    document.getElementById("game").style.display = "block";
+    resetCard();
+    loadCard(false);
+  });
+}
+
+function playDealTransition(originRect, onDone){
+  const overlay = document.getElementById("dealOverlay");
+  overlay.innerHTML = "";
+  overlay.classList.add("active");
+
+  const originX = originRect.left + originRect.width / 2;
+  const originY = originRect.top + originRect.height / 2;
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+
+  const CARD_COUNT = 9;
+  const cards = [];
+  const spreadAngles = [];
+  for(let i = 0; i < CARD_COUNT; i++){
+    const spread = 120;
+    const angle = (-spread/2) + (spread / (CARD_COUNT - 1)) * i;
+    spreadAngles.push(angle);
+  }
+
+  for(let i = 0; i < CARD_COUNT; i++){
+    const c = document.createElement("div");
+    c.className = "deal-card";
+    c.style.transform = `translate(${originX}px, ${originY}px) rotate(0deg) scale(0.4)`;
+    overlay.appendChild(c);
+    cards.push(c);
+  }
+
+  overlay.getBoundingClientRect();
+
+  requestAnimationFrame(() => {
+    cards.forEach((c, i) => {
+      const angleDeg = spreadAngles[i];
+      const rad = angleDeg * Math.PI / 180;
+      const dist = 150 + Math.random() * 40;
+      const fx = originX + Math.sin(rad) * dist;
+      const fy = originY - Math.cos(rad) * dist * 0.65 - 30;
+      c.style.transitionDelay = (i * 28) + "ms";
+      c.style.opacity = "1";
+      c.style.transform = `translate(${fx}px, ${fy}px) rotate(${angleDeg}deg) scale(0.95)`;
+    });
+  });
+
+  setTimeout(() => {
+    cards.forEach((c, i) => {
+      c.style.transitionDelay = (i * 22) + "ms";
+      c.style.transform = `translate(${centerX}px, ${centerY}px) rotate(${(Math.random()*16)-8}deg) scale(0.7)`;
+    });
+  }, 560);
+
+  setTimeout(() => {
+    cards.forEach((c, i) => {
+      c.style.transitionDelay = (i * 12) + "ms";
+      c.style.opacity = "0";
+      c.style.transform = `translate(${centerX}px, ${centerY}px) rotate(0deg) scale(0.3)`;
+    });
+  }, 1020);
+
+  setTimeout(() => {
+    overlay.classList.remove("active");
+    overlay.innerHTML = "";
+    onDone();
+  }, 1280);
+}
+
+function goHome(){
+  document.getElementById("game").style.display = "none";
+  document.getElementById("home").style.display = "block";
+}
+
+function resetCard(){
+  const card = document.getElementById("card3d");
+  card.classList.remove("flipped");
+  document.getElementById("tapHint").style.display = "block";
+}
+
+function loadCard(reveal){
+  const item = deck[deckIndex];
+  document.getElementById("progNum").textContent = deckIndex + 1;
+  document.getElementById("qtext").textContent = item.q;
+  document.getElementById("qnumLabel").textContent = "ใบที่ " + item.n;
+  if(reveal){
+    document.getElementById("card3d").classList.add("flipped");
+    document.getElementById("tapHint").style.display = "none";
+    burstSparks();
+  }
+}
+
+function handleCardClick(){
+  if(isShuffling) return;
+  const card = document.getElementById("card3d");
+  if(!card.classList.contains("flipped")){
+    card.classList.add("flipped");
+    document.getElementById("tapHint").style.display = "none";
+    burstSparks();
+  }
+}
+
+function nextCard(){
+  if(isShuffling) return;
+  deckIndex++;
+  if(deckIndex >= deck.length){
+    deck = buildDeck();
+    deckIndex = 0;
+  }
+  resetCard();
+  setTimeout(()=> loadCard(false), 120);
+}
+
+function shuffleDeck(){
+  if(isShuffling) return;
+  isShuffling = true;
+  document.getElementById("shuffleBtn").disabled = true;
+
+  const card3d = document.getElementById("card3d");
+  card3d.style.opacity = "0";
+  card3d.classList.remove("flipped");
+
+  playShuffleScatter(() => {
+    deck = buildDeck();
+    deckIndex = 0;
+    document.getElementById("progTotal").textContent = deck.length;
+    loadCard(false);
+    card3d.style.opacity = "1";
+    document.getElementById("tapHint").style.display = "block";
+    isShuffling = false;
+    document.getElementById("shuffleBtn").disabled = false;
+  });
+}
+
+function playShuffleScatter(onDone){
+  const overlay = document.getElementById("shuffleOverlay");
+  overlay.innerHTML = "";
+
+  const CARD_COUNT = 7;
+  const cards = [];
+  const angles = [];
+  for(let i = 0; i < CARD_COUNT; i++){
+    angles.push((360 / CARD_COUNT) * i + (Math.random()*20 - 10));
+  }
+
+  for(let i = 0; i < CARD_COUNT; i++){
+    const c = document.createElement("div");
+    c.className = "shuf-card";
+    overlay.appendChild(c);
+    cards.push(c);
+  }
+
+  overlay.getBoundingClientRect();
+
+  requestAnimationFrame(() => {
+    cards.forEach((c, i) => {
+      const rad = angles[i] * Math.PI / 180;
+      const dist = 90 + Math.random() * 40;
+      const dx = Math.cos(rad) * dist;
+      const dy = Math.sin(rad) * dist;
+      c.style.transitionDelay = (i * 18) + "ms";
+      c.style.opacity = "1";
+      c.style.transform = `translate(${dx}px, ${dy}px) rotate(${angles[i]}deg) scale(0.9)`;
+    });
+  });
+
+  setTimeout(() => {
+    cards.forEach((c, i) => {
+      c.style.transitionDelay = (i * 16) + "ms";
+      c.style.transform = `translate(0px, 0px) rotate(0deg) scale(0.9)`;
+    });
+  }, 650);
+
+  setTimeout(() => {
+    cards.forEach((c, i) => {
+      c.style.transitionDelay = (i * 10) + "ms";
+      c.style.opacity = "0";
+      c.style.transform = `translate(0px, 0px) rotate(0deg) scale(0.5)`;
+    });
+  }, 1080);
+
+  setTimeout(() => {
+    overlay.innerHTML = "";
+    onDone();
+  }, 1350);
+}
+
+function burstSparks(){
+  const wrap = document.querySelector(".card-wrap");
+  const rect = wrap.getBoundingClientRect();
+  for(let i=0;i<12;i++){
+    const s = document.createElement("div");
+    s.className = "spark";
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 55 + Math.random()*65;
+    s.style.setProperty("--dx", Math.cos(angle)*dist + "px");
+    s.style.setProperty("--dy", Math.sin(angle)*dist + "px");
+    s.style.left = (rect.left + rect.width/2) + "px";
+    s.style.top = (rect.top + rect.height/2) + "px";
+    document.body.appendChild(s);
+    setTimeout(()=> s.remove(), 850);
+  }
+}
+</script>
+
+</body>
+</html>
