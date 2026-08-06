@@ -78,15 +78,15 @@
     width:120px;
     height:160px;
     flex-shrink:0;
-    margin: 0 auto 24px auto; /* แก้ไข: ทำให้กองไพ่อยู่กึ่งกลางหน้าจอและมีระยะห่างกับตัวหนังสือ */
+    margin: 0 auto 24px auto;
     transition:transform .2s ease;
   }
   .deck-row:hover .deck-stack{ transform:translateY(-4px); }
- .deck-stack .pc{
+  .deck-stack .pc{
     position:absolute;
     width:100%; height:100%;
     border-radius:12px;
-    background-image: url('./plubic/infont.png'); /* ดึงรูปด้านหลังไพ่ */
+    background-image: url('./plubic/infont.png'); /* ดึงรูปด้านหน้าไพ่ (กองไพ่) */
     background-size: cover;
     background-position: center;
     border:1px solid var(--line);
@@ -99,13 +99,6 @@
     display:flex; align-items:center; justify-content:center;
     border-color:rgba(201,161,63,0.45);
     box-shadow:0 14px 30px rgba(201,161,63,0.14), 0 0 0 1px rgba(201,161,63,0.2) inset;
-  }
-  .pc-mark{
-    font-family:'Kanit',sans-serif;
-    font-weight:800;
-    font-size:38px;
-    opacity:0.9;
-    color:var(--gold-bright);
   }
 
   .deck-info{ text-align:center; }
@@ -195,31 +188,19 @@
     padding:28px;
   }
   .face-front{
-    background-image: url('./plubic/infont.png'); /* ดึงรูปด้านหน้าไพ่ */
+    background-image: url('./plubic/infont.png'); /* ดึงรูปด้านหน้าไพ่ (ก่อนเปิด) */
     background-size: cover;
     background-position: center;
     border:1px solid var(--line);
     box-shadow:0 24px 60px rgba(0,0,0,0.6);
-    flex-direction:column;
-    gap:10px;
-  }
-  .face-front .mark{
-    font-family:'Kanit',sans-serif;
-    font-size:52px;
-    font-weight:800;
-    color:var(--gold);
-    opacity:0.8;
-  }
-  .face-front .hint{
-    font-family:'Sarabun',sans-serif;
-    color:var(--ink-dim);
-    font-size:13px;
   }
   .face-back{
     transform:rotateY(180deg);
     flex-direction:column;
     border:1px solid var(--line);
-    background:linear-gradient(160deg,#17171b,#0c0c0f);
+    background-image: url('./plubic/black.png'); /* ดึงรูปพื้นหลังสีดำ (ตอนมีคำถาม) */
+    background-size: cover;
+    background-position: center;
     box-shadow:0 24px 60px rgba(201,161,63,0.12), 0 0 0 1px rgba(201,161,63,0.2) inset;
     padding-bottom: 50px; 
   }
@@ -323,9 +304,9 @@
     height:88px;
     margin:-44px 0 0 -32px;
     border-radius:9px;
-    background:
-      repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0 8px, transparent 8px 16px),
-      linear-gradient(160deg,#1e1e24,#111114);
+    background-image: url('./plubic/infont.png'); /* ดึงรูปด้านหน้าไพ่ (ตอนแจกไพ่) */
+    background-size: cover;
+    background-position: center;
     border:1px solid rgba(255,255,255,0.12);
     box-shadow:0 10px 26px rgba(0,0,0,0.55), 0 0 0 1px rgba(201,161,63,0.15) inset;
     opacity:0;
@@ -357,9 +338,9 @@
     height:70%;
     margin:-35% 0 0 -35%;
     border-radius:16px;
-    background:
-      repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0 8px, transparent 8px 16px),
-      linear-gradient(160deg,#1e1e24,#111114);
+    background-image: url('./plubic/infont.png'); /* ดึงรูปด้านหน้าไพ่ (ตอนสับไพ่) */
+    background-size: cover;
+    background-position: center;
     border:1px solid rgba(255,255,255,0.12);
     box-shadow:0 14px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(201,161,63,0.18) inset;
     opacity:0;
@@ -383,7 +364,7 @@
         <div class="deck-stack">
           <div class="pc"></div>
           <div class="pc"></div>
-          <div class="pc"><span class="pc-mark">★</span></div>
+          <div class="pc"></div> <!-- เอาไอคอนดาวออกแล้ว -->
         </div>
         <div class="kicker">เริ่มเกม</div>
         <h2>สับไพ่ แล้วลุย</h2>
@@ -402,8 +383,7 @@
     <div class="card-wrap">
       <div class="card3d" id="card3d" onclick="handleCardClick()">
         <div class="face face-front">
-          <div class="mark">★</div>
-          <div class="hint">แตะเพื่อเปิดไพ่</div>
+          <!-- เอาไอคอนดาวและข้อความแนะนำออกแล้ว -->
         </div>
         <div class="face face-back" id="faceBack">
           <div class="qtext" id="qtext">คำถาม</div>
