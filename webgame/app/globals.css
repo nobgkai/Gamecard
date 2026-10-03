@@ -65,6 +65,38 @@ body {
   height: 100vh;
 }
 
+.deal-overlay-enter {
+  animation: deal-overlay-fade-in 300ms ease-out both;
+}
+
+.deal-overlay-exit {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-stage-shuffle-entry {
+  animation: card-stage-shuffle-entry 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+@keyframes card-stage-shuffle-entry {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0) scale(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes deal-overlay-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .deal-stage {
   width: min(92vw, 760px);
   height: min(78vh, 520px);
@@ -73,20 +105,37 @@ body {
 }
 
 .deal-fan {
-  width: 100%;
-  height: 180px;
+  width: min(92vw, 620px);
+  height: min(52vh, 360px);
 }
 
 .deal-card {
   width: 118px;
   height: 168px;
   border-radius: 16px;
+  left: 50%;
+  top: 50%;
+  margin-left: -59px;
+  margin-top: -84px;
 }
 
-.deal-main-card {
-  width: 202px;
-  height: 288px;
-  border-radius: 16px;
+.shuffle-card {
+  animation: shuffle-wander 1.1s ease-in-out 3 forwards;
+}
+
+@keyframes shuffle-wander {
+  0%, 100% {
+    transform: translate3d(var(--shuffle-x), var(--shuffle-y), 0) rotate(var(--shuffle-rotate)) scale(1.08);
+  }
+  30% {
+    transform: translate3d(var(--shuffle-next-x), var(--shuffle-next-y), 0) rotate(var(--shuffle-next-rotate)) scale(1.12);
+  }
+  60% {
+    transform: translate3d(var(--shuffle-alt-x), var(--shuffle-alt-y), 0) rotate(var(--shuffle-alt-rotate)) scale(1.05);
+  }
+  82% {
+    transform: translate3d(var(--shuffle-next-x), var(--shuffle-next-y), 0) rotate(var(--shuffle-next-rotate)) scale(1.1);
+  }
 }
 
 @media (max-width: 640px) {
@@ -98,11 +147,8 @@ body {
   .deal-card {
     width: 82px;
     height: 118px;
-  }
-
-  .deal-main-card {
-    width: 154px;
-    height: 220px;
+    margin-left: -41px;
+    margin-top: -59px;
   }
 }
 
@@ -500,19 +546,11 @@ h1.title {
     min-height: 380px;
   }
 
-  .deal-fan {
-    width: 100%;
-    height: 135px;
-  }
-
   .deal-card {
-    width: 64px;
-    height: 91px;
-  }
-
-  .deal-main-card {
-    width: 142px;
-    height: 202px;
+    width: 96px;
+    height: 136px;
+    margin-left: -48px;
+    margin-top: -68px;
   }
 
   .card-screen {
@@ -585,7 +623,6 @@ h1.title {
 
 @media (min-width: 768px) {
   .home-screen {
-    border: 2px solid #7e3bd2;
     justify-content: center;
     padding-top: 0;
     padding-bottom: 40px;

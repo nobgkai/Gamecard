@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import { Itim, Kanit } from 'next/font/google';
 import { QUESTIONS_HARD, QUESTIONS_MEDIUM } from './data/questions';
 
@@ -7,7 +7,20 @@ const itim = Itim({ weight: '400', subsets: ['thai'] });
 const kanit = Kanit({ weight: ['300', '400', '500', '600'], subsets: ['thai'] });
 
 type ScreenType = 'home' | 'card-medium' | 'card-hard' | 'duck-finger';
-type DealState = 'idle' | 'start' | 'fan' | 'return';
+type DealState = 'idle' | 'start' | 'fan' | 'mix' | 'return' | 'exit';
+
+const shuffleScatter = [
+  { x: -10, y: -1.5, rotate: -24 },
+  { x: -7, y: 2, rotate: 18 },
+  { x: -4, y: -2.5, rotate: 32 },
+  { x: -1, y: 1.5, rotate: -18 },
+  { x: 3, y: -1, rotate: 24 },
+  { x: 6, y: 2.2, rotate: -31 },
+  { x: 9, y: -0.5, rotate: 38 },
+  { x: 0, y: 0.5, rotate: -39 },
+];
+
+const shuffleX = (x: number) => `clamp(-150px, ${x * 3}vw, 150px)`;
 
 export default function GamePage() {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('home');
@@ -46,7 +59,8 @@ export default function GamePage() {
 
   useEffect(() => {
     if (dealState === 'start') {
-      const fanTimer = setTimeout(() => setDealState('fan'), 50);
+      const nextState: DealState = targetMode ? 'fan' : 'mix';
+      const fanTimer = setTimeout(() => setDealState(nextState), 50);
 
       return () => {
         clearTimeout(fanTimer);
@@ -54,20 +68,50 @@ export default function GamePage() {
     }
 
     if (dealState === 'fan') {
-      const returnTimer = setTimeout(() => setDealState('return'), 1350);
+      const nextState: DealState = targetMode ? 'return' : 'mix';
+      const returnTimer = setTimeout(() => setDealState(nextState), 1350);
+
+      return () => clearTimeout(returnTimer);
+    }
+
+    if (dealState === 'mix') {
+      const returnTimer = setTimeout(() => {
+        const questions = mode === 'hard' ? QUESTIONS_HARD : QUESTIONS_MEDIUM;
+        setDeck(shuffledDeck(questions));
+        setDeckIndex(0);
+        setIsFlipped(false);
+        setDealState('exit');
+      }, 3300);
 
       return () => clearTimeout(returnTimer);
     }
 
     if (dealState === 'return') {
       const routeTimer = setTimeout(() => {
-        if (targetMode) setCurrentScreen(targetMode);
-        setDealState('idle');
-      }, 780);
+        if (targetMode) {
+          setCurrentScreen(targetMode);
+        } else {
+          const questions = mode === 'hard' ? QUESTIONS_HARD : QUESTIONS_MEDIUM;
+          setDeck(shuffledDeck(questions));
+          setDeckIndex(0);
+          setIsFlipped(false);
+        }
+        if (!targetMode) setTargetMode(null);
+        setDealState('exit');
+      }, targetMode ? 780 : 1650);
 
       return () => clearTimeout(routeTimer);
     }
-  }, [dealState, targetMode]);
+
+    if (dealState === 'exit') {
+      const exitTimer = setTimeout(() => {
+        setTargetMode(null);
+        setDealState('idle');
+      }, 700);
+
+      return () => clearTimeout(exitTimer);
+    }
+  }, [dealState, mode, targetMode]);
 
   const nextCard = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -79,10 +123,8 @@ export default function GamePage() {
 
   const reshuffleDeck = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const questions = mode === 'hard' ? QUESTIONS_HARD : QUESTIONS_MEDIUM;
-    setDeck(shuffledDeck(questions));
-    setDeckIndex(0);
-    setIsFlipped(false);
+    setTargetMode(null);
+    setDealState('start');
   };
 
   return (
@@ -91,43 +133,65 @@ export default function GamePage() {
       
       {/* ================= OVERLAY: แอนิเมชันกระจายไพ่ 8 ใบ ================= */}
       {dealState !== 'idle' && (
-        <div className="deal-overlay fixed z-[100] flex flex-col items-center justify-center bg-[#0a0a0c] animate-in fade-in duration-300">
-          <div className="deal-stage relative mx-auto flex flex-col items-center justify-end pb-20">
-            <div className="deal-fan relative flex justify-center items-end mb-8 z-10">
+        <div className={`deal-overlay fixed z-[100] flex flex-col items-center justify-center bg-[#0a0a0c] ${dealState === 'exit' ? 'deal-overlay-exit' : 'deal-overlay-enter'}`}>
+          <div className="deal-stage relative mx-auto flex items-center justify-center">
+            <div className="deal-fan relative z-10">
               {[...Array(8)].map((_, i) => {
                 const offset = i - 3.5;
                 const angle = offset * 12;
                 const x = offset * 50;
                 const y = Math.abs(offset) * 15;
+                const position = shuffleScatter[i];
+                const nextPosition = shuffleScatter[(i + 3) % shuffleScatter.length];
+                const alternatePosition = shuffleScatter[(i + 6) % shuffleScatter.length];
                 
                 return (
                   <div
                     key={i}
-                    className="deal-card absolute rounded-xl border border-white/20 shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom bg-cover bg-center"
+                    className={`deal-card absolute rounded-xl border border-white/20 shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom bg-cover bg-center ${dealState === 'mix' ? 'shuffle-card' : ''}`}
                     style={{
                       backgroundImage: "url('/gamecard/infont.png')",
-                      transform: dealState === 'fan'
+                      '--shuffle-x': shuffleX(position.x),
+                      '--shuffle-y': `${position.y}vh`,
+                      '--shuffle-rotate': `${position.rotate}deg`,
+                      '--shuffle-next-x': shuffleX(nextPosition.x),
+                      '--shuffle-next-y': `${nextPosition.y}vh`,
+                      '--shuffle-next-rotate': `${nextPosition.rotate}deg`,
+                      '--shuffle-alt-x': shuffleX(alternatePosition.x),
+                      '--shuffle-alt-y': `${alternatePosition.y}vh`,
+                      '--shuffle-alt-rotate': `${alternatePosition.rotate}deg`,
+                      animationDelay: `${i * -0.14}s`,
+                      zIndex: (i * 3) % shuffleScatter.length,
+                      transform: dealState === 'mix'
+                        ? `translate3d(${shuffleX(position.x)}, ${position.y}vh, 0) rotate(${position.rotate}deg) scale(1.08)`
+                        : dealState === 'fan'
                         ? `translateX(${x}px) translateY(${y}px) rotate(${angle}deg) scale(1)` 
                         : dealState === 'return'
-                          ? 'translateX(0px) translateY(115px) rotate(0deg) scale(0.35)'
+                          ? targetMode
+                            ? 'translateX(0px) translateY(115px) rotate(0deg) scale(0.35)'
+                            : `translate3d(${position.x * 1.5}px, ${position.y * 1.5}vh, 0) rotate(${position.rotate * 0.2}deg) scale(1)`
                           : `translateX(0px) translateY(100px) rotate(0deg) scale(0)`,
-                      opacity: dealState === 'start' ? 0 : dealState === 'return' ? 0 : 1,
-                      transitionDelay: `${Math.abs(offset) * 40}ms`
+                      opacity: dealState === 'start' || (dealState === 'return' && targetMode !== null) ? 0 : 1,
+                      transitionDelay: `${Math.abs(offset) * 40}ms`,
+                      transitionDuration: dealState === 'return' && !targetMode ? '1450ms' : undefined,
+                      transitionTimingFunction: dealState === 'return' && !targetMode
+                        ? 'cubic-bezier(0.22, 1, 0.36, 1)'
+                        : undefined
+                    } as CSSProperties & {
+                      '--shuffle-x': string;
+                      '--shuffle-y': string;
+                      '--shuffle-rotate': string;
+                      '--shuffle-next-x': string;
+                      '--shuffle-next-y': string;
+                      '--shuffle-next-rotate': string;
+                      '--shuffle-alt-x': string;
+                      '--shuffle-alt-y': string;
+                      '--shuffle-alt-rotate': string;
                     }}
                   />
                 );
               })}
             </div>
-
-            <div 
-              className="deal-main-card relative rounded-2xl border-2 border-[#ffca28] shadow-[0_0_40px_rgba(255,202,40,0.25)] transition-all duration-700 ease-[cubic-bezier(0.2,0.9,0.25,1)] z-20 bg-cover bg-center"
-              style={{
-                backgroundImage: "url('/gamecard/infont.png')",
-                transform: dealState === 'fan' ? 'translateY(0) scale(1)' : dealState === 'return' ? 'translateY(0) scale(0)' : 'translateY(150px) scale(0.5)',
-                opacity: dealState === 'start' || dealState === 'return' ? 0 : 1,
-                transitionDelay: '150ms'
-              }}
-            ></div>
 
           </div>
         </div>
@@ -224,8 +288,12 @@ export default function GamePage() {
       )}
 
       {/* ================= หน้าเกมไพ่ (CARD GAME) ================= */}
-      {(currentScreen === 'card-medium' || currentScreen === 'card-hard') && dealState === 'idle' && (
-        <div className="card-screen w-full min-h-screen flex flex-col items-center justify-center p-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
+      {(currentScreen === 'card-medium' || currentScreen === 'card-hard') && (
+        dealState === 'idle' ||
+        dealState === 'exit' ||
+        (dealState === 'return' && targetMode === null)
+      ) && (
+        <div className="card-screen w-full min-h-screen flex flex-col items-center justify-center p-6">
           
           <div className="card-panel">
             <div className="card-toolbar mb-8">
@@ -241,7 +309,7 @@ export default function GamePage() {
             </div>
 
             <div 
-              className="card-stage-view relative w-full cursor-pointer [perspective:1400px] group" 
+              className={`card-stage-view relative w-full cursor-pointer [perspective:1400px] group ${dealState === 'exit' && !targetMode ? 'card-stage-shuffle-entry' : ''}`}
               onClick={() => setIsFlipped(true)}
             >
               <div className={`w-full h-full relative transition-transform duration-700 ease-[cubic-bezier(0.2,0.9,0.25,1)] [transform-style:preserve-3d] ${isFlipped ? '[transform:rotateY(180deg)]' : 'group-hover:scale-[1.03]'}`}>
